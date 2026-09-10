@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ContributeDialog } from "@/components/contribute-dialog";
 import { PriorityBadge } from "@/components/priority-badge";
 import { StageBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { useReliefStore } from "@/lib/store";
-import { RESOURCE_LABEL } from "@/lib/types";
+import { RESOURCE_LABEL, type Transaction } from "@/lib/types";
 import { formatNumber, formatWhen } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/feed/$id")({
@@ -15,9 +15,15 @@ export const Route = createFileRoute("/_app/feed/$id")({
 function RequirementDetailPage() {
   const { id } = Route.useParams();
   const user = useReliefStore((s) => s.currentUser);
-  const item = useReliefStore((s) => s.requirements.find((r) => r.id === id));
-  const related = useReliefStore((s) =>
-    s.transactions.filter((t) => t.requirementId === id),
+  const allRequirements = useReliefStore((s) => s.requirements);
+  const allTransactions = useReliefStore((s) => s.transactions);
+  const item = useMemo(
+    () => allRequirements.find((r) => r.id === id),
+    [allRequirements, id]
+  );
+  const related = useMemo(
+    () => allTransactions.filter((t) => t.requirementId === id),
+    [allTransactions, id]
   );
   const [open, setOpen] = useState(false);
 

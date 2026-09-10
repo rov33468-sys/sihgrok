@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -32,9 +33,16 @@ function canAdvance(role: Role, stage: TxStage): TxStage | null {
 function TransactionDetailPage() {
   const { id } = Route.useParams();
   const user = useReliefStore((s) => s.currentUser);
-  const tx = useReliefStore((s) => s.transactions.find((t) => t.id === id));
-  const req = useReliefStore((s) =>
-    s.requirements.find((r) => r.id === tx?.requirementId),
+  const allTransactions = useReliefStore((s) => s.transactions);
+  const allRequirements = useReliefStore((s) => s.requirements);
+
+  const tx = useMemo(
+    () => allTransactions.find((t) => t.id === id),
+    [allTransactions, id]
+  );
+  const req = useMemo(
+    () => allRequirements.find((r) => r.id === tx?.requirementId),
+    [allRequirements, tx?.requirementId]
   );
   const advanceStage = useReliefStore((s) => s.advanceStage);
   const resolveDispute = useReliefStore((s) => s.resolveDispute);

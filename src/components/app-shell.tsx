@@ -23,6 +23,8 @@ import { Switch } from "@/components/ui/switch";
 import { useReliefStore } from "@/lib/store";
 import { ROLE_LABEL, type Role } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { signOut as authSignOut } from "@/lib/auth/client";
+import { logoutFirebaseUser } from "@/lib/firebase/auth";
 
 type AppTo =
   | "/dashboard"
@@ -76,8 +78,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const overflow = items.filter((i) => !primaryTos.includes(i.to));
 
   const signOut = () => {
-    logout();
-    navigate({ to: "/" });
+    void logoutFirebaseUser().catch(() => {});
+    authSignOut()
+      .then(() => {
+        logout();
+        navigate({ to: "/" });
+      })
+      .catch((err) => {
+        console.error("Sign out failed:", err);
+        logout();
+        navigate({ to: "/" });
+      });
   };
 
   const isOn = (to: AppTo) => pathname === to || pathname.startsWith(`${to}/`);

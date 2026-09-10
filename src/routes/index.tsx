@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Handshake, Landmark, Truck } from "lucide-react";
 import { Splash } from "@/components/store-hydration";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { demoUserForRole, useReliefStore } from "@/lib/store";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
   RESOURCE_LABEL,
   ROLE_LABEL,
@@ -54,6 +55,7 @@ const DEMOS: { id: string; name: string; meta: string }[] = [
 function LoginPage() {
   const hydrated = useReliefStore((s) => s._hydrated);
   const user = useReliefStore((s) => s.currentUser);
+  const users = useReliefStore((s) => s.users);
   const fieldMode = useReliefStore((s) => s.fieldMode);
   const toggleFieldMode = useReliefStore((s) => s.toggleFieldMode);
   const loginAs = useReliefStore((s) => s.loginAs);
@@ -62,6 +64,8 @@ function LoginPage() {
   const transactions = useReliefStore((s) => s.transactions);
   const navigate = useNavigate();
 
+  const { user: authedUser, isPending: authPending } = useCurrentUserState();
+
   const [role, setRole] = useState<Role | null>(null);
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -69,6 +73,26 @@ function LoginPage() {
   const [region, setRegion] = useState("");
   const [contributionType, setContributionType] =
     useState<ResourceType>("food");
+
+  // Sync session and route
+  useEffect(() => {
+    if (!hydrated || authPending) return;
+    if (!authedUser) {
+      navigate({ to: "/login" });
+      return;
+    }
+    const existing = users.find((u) => u.id === authedUser.id);
+    if (existing) {
+      if (!user || user.id !== existing.id) {
+        loginAs(existing.id);
+      }
+      navigate({ to: "/dashboard" });
+    } else {
+      if (!name) {
+        setName(authedUser.displayName || "");
+      }
+    }
+  }, [hydrated, authPending, authedUser, users, user, loginAs, navigate, name]);
 
   const stats = useMemo(() => {
     const people = requirements.reduce((a, r) => a + r.peopleAffected, 0);
@@ -81,8 +105,7 @@ function LoginPage() {
     return { people, critical, active };
   }, [requirements, transactions]);
 
-  if (!hydrated) return <Splash />;
-  if (user) return <Navigate to="/dashboard" />;
+  if (!hydrated || authPending) return <Splash />;
 
   const enter = (userId: string) => {
     loginAs(userId);
@@ -96,8 +119,9 @@ function LoginPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!role || !name.trim()) return;
+    if (!role || !name.trim() || !authedUser) return;
     signup({
+      id: authedUser.id,
       name,
       role,
       orgName: role === "receiver" ? orgName : undefined,

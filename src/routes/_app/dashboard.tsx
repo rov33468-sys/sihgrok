@@ -124,14 +124,21 @@ function DonorHome() {
 
 function ReceiverHome() {
   const user = useReliefStore((s) => s.currentUser)!;
-  const requirements = useReliefStore((s) =>
-    s.requirements.filter((r) => r.receiverId === user.id),
+  const allRequirements = useReliefStore((s) => s.requirements);
+  const allSurplus = useReliefStore((s) => s.surplus);
+  const allTransactions = useReliefStore((s) => s.transactions);
+
+  const requirements = useMemo(
+    () => allRequirements.filter((r) => r.receiverId === user.id),
+    [allRequirements, user.id]
   );
-  const surplus = useReliefStore((s) =>
-    s.surplus.filter((x) => x.receiverId === user.id),
+  const surplus = useMemo(
+    () => allSurplus.filter((x) => x.receiverId === user.id),
+    [allSurplus, user.id]
   );
-  const inbound = useReliefStore((s) =>
-    s.transactions.filter((t) => t.receiverId === user.id),
+  const inbound = useMemo(
+    () => allTransactions.filter((t) => t.receiverId === user.id),
+    [allTransactions, user.id]
   );
 
   return (

@@ -1,6 +1,13 @@
 {
   "VITE_AUTH_ENABLED": "false",
+  "VITE_FIREBASE_API_KEY": "AIzaSyACgRK6RxGVLivcw-NVZW04QeyrnJsqBZc",
+  "VITE_FIREBASE_AUTH_DOMAIN": "reliefnet-7efa6.firebaseapp.com",
+  "VITE_FIREBASE_PROJECT_ID": "reliefnet-7efa6",
+  "VITE_FIREBASE_STORAGE_BUCKET": "reliefnet-7efa6.firebasestorage.app",
+  "VITE_FIREBASE_MESSAGING_SENDER_ID": "543978156582",
+  "VITE_FIREBASE_APP_ID": "1:543978156582:web:965977d89f3f9864a0ace7",
+  "VITE_FIREBASE_MEASUREMENT_ID": "G-PDW4HMBV7L",
   "deploy": {
-    "database": false
+    "database": true
   }
 }

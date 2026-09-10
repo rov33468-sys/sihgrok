@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/app-shell";
 import { StageBadge, VerifyBadge } from "@/components/status-badge";
@@ -9,8 +10,10 @@ import { formatStamp } from "@/lib/utils";
 export const Route = createFileRoute("/_app/audit")({ component: AuditPage });
 
 function AuditPage() {
-  const transactions = useReliefStore((s) =>
-    s.transactions.slice().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+  const allTransactions = useReliefStore((s) => s.transactions);
+  const transactions = useMemo(
+    () => allTransactions.slice().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+    [allTransactions]
   );
 
   return (

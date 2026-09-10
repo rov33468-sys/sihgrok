@@ -28,8 +28,17 @@ import {
   dbSaveTransaction,
   dbResetDemo,
 } from "./db-actions";
+import {
+  firestoreSaveUser,
+  firestoreSaveRequirement,
+  firestoreSaveSurplus,
+  firestoreSaveTransaction,
+  seedFirestoreIfEmpty,
+} from "./firebase/db";
+import { isFirebaseConfigured } from "./firebase/config";
 
 export interface SignupInput {
+  id?: string;
   name: string;
   role: Role;
   orgName?: string;
@@ -162,7 +171,7 @@ export const useReliefStore = create<ReliefState>()(
 
       signup: (input) => {
         const user: User = {
-          id: makeId("u"),
+          id: input.id || makeId("u"),
           name: input.name.trim(),
           role: input.role,
           orgName: input.orgName?.trim() || undefined,
@@ -173,6 +182,9 @@ export const useReliefStore = create<ReliefState>()(
         set((s) => ({ users: [...s.users, user], currentUser: user }));
         void dbSignup({ data: user }).catch((err) =>
           console.error("[db] signup sync failed:", err)
+        );
+        void firestoreSaveUser(user).catch((err) =>
+          console.error("[Firebase] signup save failed:", err)
         );
         return user;
       },
@@ -232,6 +244,9 @@ export const useReliefStore = create<ReliefState>()(
         void dbPostRequirement({ data: item }).catch((err) =>
           console.error("[db] postRequirement sync failed:", err)
         );
+        void firestoreSaveRequirement(item).catch((err) =>
+          console.error("[Firebase] postRequirement save failed:", err)
+        );
         return item;
       },
 
@@ -258,6 +273,9 @@ export const useReliefStore = create<ReliefState>()(
         set((s) => ({ surplus: [item, ...s.surplus] }));
         void dbPostSurplus({ data: item }).catch((err) =>
           console.error("[db] postSurplus sync failed:", err)
+        );
+        void firestoreSaveSurplus(item).catch((err) =>
+          console.error("[Firebase] postSurplus save failed:", err)
         );
         return item;
       },
@@ -309,6 +327,12 @@ export const useReliefStore = create<ReliefState>()(
         void dbSaveTransaction({ data: { tx, requirement: updatedReq } }).catch((err) =>
           console.error("[db] contribute sync failed:", err)
         );
+        void firestoreSaveTransaction(tx).catch((err) =>
+          console.error("[Firebase] contribute tx save failed:", err)
+        );
+        void firestoreSaveRequirement(updatedReq).catch((err) =>
+          console.error("[Firebase] contribute req save failed:", err)
+        );
         return tx;
       },
 
@@ -344,6 +368,9 @@ export const useReliefStore = create<ReliefState>()(
           void dbSaveTransaction({ data: { tx: updatedTx } }).catch((err) =>
             console.error("[db] advanceStage sync failed:", err)
           );
+          void firestoreSaveTransaction(updatedTx).catch((err) =>
+            console.error("[Firebase] advanceStage tx save failed:", err)
+          );
         }
       },
 
@@ -374,6 +401,9 @@ export const useReliefStore = create<ReliefState>()(
         if (updatedTx) {
           void dbSaveTransaction({ data: { tx: updatedTx } }).catch((err) =>
             console.error("[db] uploadProof sync failed:", err)
+          );
+          void firestoreSaveTransaction(updatedTx).catch((err) =>
+            console.error("[Firebase] uploadProof tx save failed:", err)
           );
         }
       },
@@ -436,6 +466,15 @@ export const useReliefStore = create<ReliefState>()(
         void dbSaveTransaction({ data: { tx, requirement: updatedReq, surplus: updatedSur } }).catch((err) =>
           console.error("[db] matchSurplus sync failed:", err)
         );
+        void firestoreSaveTransaction(tx).catch((err) =>
+          console.error("[Firebase] matchSurplus tx save failed:", err)
+        );
+        void firestoreSaveRequirement(updatedReq).catch((err) =>
+          console.error("[Firebase] matchSurplus req save failed:", err)
+        );
+        void firestoreSaveSurplus(updatedSur).catch((err) =>
+          console.error("[Firebase] matchSurplus sur save failed:", err)
+        );
         return tx;
       },
 
@@ -462,6 +501,9 @@ export const useReliefStore = create<ReliefState>()(
         if (updatedTx) {
           void dbSaveTransaction({ data: { tx: updatedTx } }).catch((err) =>
             console.error("[db] resolveDispute sync failed:", err)
+          );
+          void firestoreSaveTransaction(updatedTx).catch((err) =>
+            console.error("[Firebase] resolveDispute tx save failed:", err)
           );
         }
       },

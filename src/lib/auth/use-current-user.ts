@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { authClient, authEnabled } from "./client";
+import { auth, isFirebaseConfigured } from "../firebase/config";
+import { subscribeToAuth, mapFirebaseUser } from "../firebase/auth";
 
 /** Normalized user shape used across the app, auth on or off. */
 export type AppUser = {
@@ -54,7 +57,36 @@ export type CurrentUserState = {
  * `authEnabled` is a module-level constant fixed at load, so the guarded hook
  * call keeps a stable hook order across every render of a given component.
  */
+let globalFirebaseUser: AppUser | null = null;
+let globalFirebasePending = isFirebaseConfigured();
+const authListeners = new Set<() => void>();
+
+if (typeof window !== "undefined" && isFirebaseConfigured()) {
+  subscribeToAuth((u) => {
+    globalFirebaseUser = u;
+    globalFirebasePending = false;
+    authListeners.forEach((fn) => fn());
+  });
+}
+
 export function useCurrentUserState(): CurrentUserState {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+    const update = () => setTick((n) => n + 1);
+    authListeners.add(update);
+    return () => {
+      authListeners.delete(update);
+    };
+  }, []);
+
+  if (isFirebaseConfigured()) {
+    const currentUser = globalFirebaseUser || (auth?.currentUser ? mapFirebaseUser(auth.currentUser) : null);
+    const isPending = globalFirebasePending && !currentUser;
+    return { user: currentUser, isPending };
+  }
+
   if (!authEnabled) return { user: DEV_USER, isPending: false };
   // eslint-disable-next-line react-hooks/rules-of-hooks -- authEnabled is constant for the app's lifetime
   const { data, isPending } = authClient.useSession();

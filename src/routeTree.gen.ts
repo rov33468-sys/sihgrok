@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppAuditRouteImport } from './routes/_app/audit'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
@@ -20,6 +21,7 @@ import { Route as AppSurplusRouteImport } from './routes/_app/surplus'
 import { Route as AppTransactionsRouteImport } from './routes/_app/transactions'
 import { Route as AppFeedIdRouteImport } from './routes/_app/feed.$id'
 import { Route as AppTransactionsIdRouteImport } from './routes/_app/transactions.$id'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAuditRoute = AppAuditRouteImport.update({
@@ -75,9 +82,15 @@ const AppTransactionsIdRoute = AppTransactionsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppTransactionsRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/audit': typeof AppAuditRoute
   '/dashboard': typeof AppDashboardRoute
   '/feed': typeof AppFeedRouteWithChildren
@@ -87,9 +100,11 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof AppTransactionsRouteWithChildren
   '/feed/$id': typeof AppFeedIdRoute
   '/transactions/$id': typeof AppTransactionsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/audit': typeof AppAuditRoute
   '/dashboard': typeof AppDashboardRoute
   '/feed': typeof AppFeedRouteWithChildren
@@ -99,11 +114,13 @@ export interface FileRoutesByTo {
   '/transactions': typeof AppTransactionsRouteWithChildren
   '/feed/$id': typeof AppFeedIdRoute
   '/transactions/$id': typeof AppTransactionsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteRouteWithChildren
+  '/login': typeof LoginRoute
   '/_app/audit': typeof AppAuditRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/feed': typeof AppFeedRouteWithChildren
@@ -113,11 +130,13 @@ export interface FileRoutesById {
   '/_app/transactions': typeof AppTransactionsRouteWithChildren
   '/_app/feed/$id': typeof AppFeedIdRoute
   '/_app/transactions/$id': typeof AppTransactionsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/audit'
     | '/dashboard'
     | '/feed'
@@ -127,9 +146,11 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/feed/$id'
     | '/transactions/$id'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/audit'
     | '/dashboard'
     | '/feed'
@@ -139,10 +160,12 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/feed/$id'
     | '/transactions/$id'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/login'
     | '/_app/audit'
     | '/_app/dashboard'
     | '/_app/feed'
@@ -152,11 +175,14 @@ export interface FileRouteTypes {
     | '/_app/transactions'
     | '/_app/feed/$id'
     | '/_app/transactions/$id'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRouteRoute: typeof AppRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -173,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/audit': {
@@ -238,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTransactionsIdRouteImport
       parentRoute: typeof AppTransactionsRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -291,6 +331,8 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRouteRoute: AppRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

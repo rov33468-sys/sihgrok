@@ -1,5 +1,13 @@
 import { useEffect } from "react";
 import { useReliefStore } from "@/lib/store";
+import { isFirebaseConfigured } from "@/lib/firebase/config";
+import {
+  subscribeToUsers,
+  subscribeToRequirements,
+  subscribeToSurplus,
+  subscribeToTransactions,
+  seedFirestoreIfEmpty,
+} from "@/lib/firebase/db";
 
 export function StoreHydration() {
   const fieldMode = useReliefStore((s) => s.fieldMode);
@@ -17,6 +25,32 @@ export function StoreHydration() {
     }
     return unsub;
   }, [setHydrated]);
+
+  // Real-time Firestore synchronization
+  useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+
+    void seedFirestoreIfEmpty();
+
+    const unsubs = [
+      subscribeToUsers((users) => {
+        if (users.length > 0) useReliefStore.setState({ users });
+      }),
+      subscribeToRequirements((requirements) => {
+        if (requirements.length > 0) useReliefStore.setState({ requirements });
+      }),
+      subscribeToSurplus((surplus) => {
+        if (surplus.length > 0) useReliefStore.setState({ surplus });
+      }),
+      subscribeToTransactions((transactions) => {
+        if (transactions.length > 0) useReliefStore.setState({ transactions });
+      }),
+    ];
+
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.mode = fieldMode ? "field" : "default";
