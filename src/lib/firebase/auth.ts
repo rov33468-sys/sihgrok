@@ -111,3 +111,33 @@ export function mapFirebaseUser(user: FirebaseUser): AppUser {
     isDevFallback: false,
   };
 }
+
+/**
+ * Maps technical Firebase Auth error codes into clear, actionable messages.
+ */
+export function formatAuthError(err: any): string {
+  const code = err?.code || "";
+  switch (code) {
+    case "auth/operation-not-allowed":
+      return "Sign-in provider is disabled in Firebase. Go to Firebase Console > Build > Authentication > Sign-in method and enable 'Email/Password' and 'Google'.";
+    case "auth/unauthorized-domain":
+      return "Domain not authorized. Go to Firebase Console > Authentication > Settings > Authorized domains and add this domain (e.g. sihgrok.vercel.app).";
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+    case "auth/invalid-credential":
+      return "Invalid email or password. If you haven't created an account yet, click 'Need an account? Sign up' below.";
+    case "auth/email-already-in-use":
+      return "An account with this email already exists. Please sign in instead or reset your password.";
+    case "auth/weak-password":
+      return "Password is too weak. Please choose a password with at least 6 characters.";
+    case "auth/popup-closed-by-user":
+      return "The Google Sign-In popup was closed before completing.";
+    case "auth/popup-blocked":
+      return "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+    case "auth/network-request-failed":
+      return "Network error connecting to Firebase. Please check your internet connection.";
+    default:
+      return err?.message || "Authentication failed. Please try again.";
+  }
+}
+

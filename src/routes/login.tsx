@@ -5,6 +5,7 @@ import {
   loginWithGoogle,
   loginWithEmail,
   registerWithEmail,
+  formatAuthError,
 } from "@/lib/firebase/auth";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
 
@@ -49,7 +50,7 @@ function Login() {
         navigate({ to: "/" });
       }
     } catch (err: any) {
-      setErrorMessage(err.message || "Google sign-in failed.");
+      setErrorMessage(formatAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ function Login() {
       }
       navigate({ to: "/" });
     } catch (err: any) {
-      setErrorMessage(err.message || "Authentication failed.");
+      setErrorMessage(formatAuthError(err));
     } finally {
       setLoading(false);
     }
